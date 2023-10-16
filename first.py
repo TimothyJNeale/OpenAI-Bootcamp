@@ -13,7 +13,7 @@ openai.api_key = api_key
 #print(openai.Engine.list())
 
 response = openai.Completion.create(
-    model='text-davinci-003',
+    model='gpt-3.5-turbo-instruct',
     prompt="Give me two reasons to learn OpenAI API with pythton ",
     max_tokens=300)
 
