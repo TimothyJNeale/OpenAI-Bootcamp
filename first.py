@@ -10,4 +10,11 @@ api_key = os.environ["OPENAI_API_KEY"]
 print(api_key)
 
 openai.api_key = api_key
-print(openai.Engine.list())
+#print(openai.Engine.list())
+
+response = openai.Completion.create(
+    model='text-davinci-003',
+    prompt="Give me two reasons to learn OpenAI API with pythton ",
+    max_tokens=300)
+
+print(response['choices'][0]['text'])
