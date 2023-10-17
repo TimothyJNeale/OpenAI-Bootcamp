@@ -36,6 +36,12 @@ def combine_prompt(df, nlp_text):
     query_init_string = f"### A query to answer: {nlp_text}\nSELECT"
     return definition + query_init_string
 
+def handle_response(response):
+    query =  response['choices'][0]['text']
+    if query.startswith(' '):
+        query = 'SELECT'+query
+    return query
+
 # Use pandas to read the csv file
 df = pd.read_csv('data/sales_data_sample.csv')
 
@@ -47,18 +53,28 @@ data = df.to_sql(name='Sales', con=temp_db)
 
 nlp_text = prompt_input()
 print(nlp_text)
-print(create_table_definition(df))
+#print(create_table_definition(df))
 
 prompt = combine_prompt(df, nlp_text)
-print(prompt)
+#print(prompt)
 
-# Create a connection to the database
-# with temp_db.connect() as conn:
-#     # Execute a SQL query
-#     result = conn.execute(text("SELECT * FROM Sales LIMIT 5"))
-#     # Print the result
-#     for row in result:
-#         print(row)
+response = openai.Completion.create(
+    model='gpt-3.5-turbo-instruct',
+    prompt=prompt,
+    temperature = 0,
+    max_tokens=200,
+    top_p = 1,
+    frequency_penalty = 0,
+    presence_penalty = 0,
+    stop = [';', "#"]
+    )
+
+sql_query = handle_response(response)
+print(sql_query)
+
+with temp_db.connect() as conn:
+    result = conn.execute(text(sql_query))
+    print(result.fetchall())
 
 
 
