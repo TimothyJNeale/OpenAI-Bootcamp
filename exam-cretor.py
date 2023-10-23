@@ -58,21 +58,53 @@ def extract_answers(test, num_questions):
 
     return answers
 
+# Set the exam
+def take_exam(questions):
+    student_answers = {}
+    for question, question_view in questions.items():
+        print(question_view)
+        student_answers[question] = input("Answer: ")
+        print("\n")
+
+    return student_answers
+
+#Grade the exam
+def grade_exam(answers, student_answers):
+    score = 0
+    for question, answer in student_answers.items():
+        if answer.upper() == answers[question][16]:
+            score += 1
+    grade = score / len(student_answers)*100
+
+    return grade
+
 prompt = create_test_prompt("USA History", 4, 4)
 
 response = openai.Completion.create(engine="text-davinci-003",
                                     prompt=prompt,
                                     max_tokens=256,
                                     temperature=0.7)
-print(response['choices'][0]['text'])
+#aprint(response['choices'][0]['text'])
 
 questions = create_student_view(response['choices'][0]['text'], 4)
-for key in questions:
-    print(f"Question {key}:")
-    print(questions[key])
-    print("\n")
+# for key in questions:
+#     print(f"Question {key}:")
+#     print(questions[key])
+#     print("\n")
 
 answers = extract_answers(response['choices'][0]['text'], 4)
 
-for key in answers:
-    print("Question "+str(key) +" "+ answers[key])
+# for key in answers:
+#     print("Question "+str(key) +" "+ answers[key])
+
+# Take the exam
+student_answers = take_exam(questions)
+# print(student_answers)
+
+# Grade the exam
+grade = grade_exam(answers, student_answers)
+if grade < 60:
+    print(f"Your grade is {grade}. You failed the exam")
+else:
+    print(f"Your grade is {grade}. You passed the exam")
+
