@@ -4,6 +4,9 @@
 import openai
 from dotenv import load_dotenv
 import os
+
+import requests
+import shutil
 import re
 
 # load environment variables from .env file
@@ -32,6 +35,27 @@ def extract_title(prompt_result):
     title = re.findall(r'^.*Recipe Title: .*$', prompt_result, re.MULTILINE)
     return title[0].replace('Recipe Title: ', '')
 
+# Create the prompt for the image based of passed recipe title
+def create_image_prompt(recipe_title):
+    prompt = f"""
+    # Create a photo-realistic image of a meal of {recipe_title} on a table .
+    # Do not include the title.
+    #  """
+    return prompt
+
+# Download and save the image returned from DALLE
+def save_image(image_response, filename):
+    image_url = image_response['data'][0]['url']
+
+    image_res = requests.get(image_url, stream=True)
+    if image_res.status_code == 200:
+        with open(filename, 'wb') as image_file:
+            shutil.copyfileobj(image_res.raw, image_file)
+    else:
+        print('Image couldn\'t be retreived')
+
+    return image_res.status_code
+
 prompt = create_recipe_prompt(['chicken', 'rice', 'broccoli'])
 
 response = openai.Completion.create(engine="text-davinci-003",
@@ -40,7 +64,16 @@ response = openai.Completion.create(engine="text-davinci-003",
                                     temperature=0.8)
 
 result_text =response['choices'][0]['text']
-print(result_text)
+#print(result_text)
 
 title = extract_title(result_text)
-print(title)    
+print(title)
+
+# Create the image using DALL-E
+image_prompt = create_image_prompt(title)
+image_response = openai.Image.create(prompt=image_prompt,
+                                    n=1,
+                                    size='1024x1024')
+
+result = save_image(image_response, 'dev/recipe_image.jpg')
+print(f'Image saved: {result}')
