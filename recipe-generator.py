@@ -4,6 +4,7 @@
 import openai
 from dotenv import load_dotenv
 import os
+import re
 
 # load environment variables from .env file
 load_dotenv()
@@ -26,12 +27,20 @@ def create_recipe_prompt(ingredients):
     # Instructions:"""
     return prompt
 
+# A function to return the recipie title from the prompt result using regex
+def extract_title(prompt_result):
+    title = re.findall(r'^.*Recipe Title: .*$', prompt_result, re.MULTILINE)
+    return title[0].replace('Recipe Title: ', '')
+
 prompt = create_recipe_prompt(['chicken', 'rice', 'broccoli'])
-print
 
 response = openai.Completion.create(engine="text-davinci-003",
                                     prompt=prompt,
                                     max_tokens=256,
                                     temperature=0.8)
 
-print(response['choices'][0]['text'])
+result_text =response['choices'][0]['text']
+print(result_text)
+
+title = extract_title(result_text)
+print(title)    
