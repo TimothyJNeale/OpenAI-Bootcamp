@@ -43,6 +43,12 @@ def create_image_prompt(recipe_title):
     #  """
     return prompt
 
+def create_image_prompt2(recipe_title):
+    prompt = f"""{recipe_title}, professional food photography, 15mm, studio lighting, 1/125s, f/5.6, ISO 100, 5500K, 1/4
+    # Do not include the title.
+    #  """
+    return prompt
+
 # Download and save the image returned from DALLE
 def save_image(image_response, filename):
     image_url = image_response['data'][0]['url']
@@ -70,7 +76,7 @@ title = extract_title(result_text)
 print(title)
 
 # Create the image using DALL-E
-image_prompt = create_image_prompt(title)
+image_prompt = create_image_prompt2(title)
 image_response = openai.Image.create(prompt=image_prompt,
                                     n=1,
                                     size='1024x1024')
