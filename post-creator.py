@@ -1,6 +1,7 @@
 import openai
 import os
 import shutil
+import requests
 
 from dotenv import load_dotenv
 from git import Repo
@@ -52,7 +53,7 @@ def create_post(title, content, cover_image=None):
             f.write('</body>\n')
             f.write('</html>\n')
 
-            print(f"Created new post: {path_to_new_post}")
+            #print(f"Created new post: {path_to_new_post}")
             return path_to_new_post
         
     else:
@@ -70,7 +71,7 @@ def check_for_duplicate_links(path_to_new_content, links):
 
 def write_to_index(path_to_new_content):
     with open(PATH_TO_BLOG/"index.html") as index:
-        soup = Soup(index.read())
+        soup = Soup(index.read(), features="html.parser")
     
     links = soup.find_all("a")
     last_link = links[-1]
@@ -85,20 +86,72 @@ def write_to_index(path_to_new_content):
     with open(PATH_TO_BLOG/"index.html", "w") as f:
         f.write(str(soup.prettify(formatter="html5")))
 
+
+def create_prompt(title):
+    prompt = f"""
+    About this blog : This blog is for people with a non-technical background. It hopes to teach and inform readers
+    about AI in general and generative AI in particular.
+
+    I am writing a blog post about {title}.
+    tags: AI, Generative AI, GPT-3, OpenAI, Machine Learning, Deep Learning, Neural Networks, AGI
+
+    Full Text :
+    """
+    return prompt
+
+def dalle2_prompt(title):
+    prompt = f"""A Professional photograph showing '{title}' as a concept. 
+    # It should include real objects such as servers or smart phones.
+    # 15mm, studio lighting, 1/125s, f/5.6, ISO 100, 5500K, 1/4
+    # Do not include the title."""
+    return prompt
+
+# Download and save the image returned from DALLE
+def save_image(image_response, filename):
+    image_url = image_response['data'][0]['url']
+
+    image_res = requests.get(image_url, stream=True)
+    if image_res.status_code == 200:
+        with open(filename, 'wb') as image_file:
+            shutil.copyfileobj(image_res.raw, image_file)
+    else:
+        print('Image couldn\'t be retreived')
+
+    return image_res.status_code
+
+
 ############# Execution code starts here #############
+title = "The Future of AI"
+prompt = create_prompt(title)
+image_prompt = dalle2_prompt(title)
+cover_image = f"dev/{title}.jpg" 
 
+# load environment variables from .env file
+load_dotenv()
 
-path_to_new_post = create_post("Test Post", "This is another test post", cover_image="dev/Engineering.png")
+# get api key from environment variable
+api_key = os.environ["OPENAI_API_KEY"]
+openai.api_key = api_key
 
+response = openai.Completion.create(engine="text-davinci-003",
+                                    prompt=prompt,
+                                    max_tokens=1000,
+                                    temperature=0.7)
 
+blog_content = response['choices'][0]['text']
+print(blog_content)
+
+blog_image = openai.Image.create(prompt=image_prompt,
+                                    n=1,
+                                    size='1024x1024')
+save_image(blog_image, cover_image)
+
+path_to_new_post = create_post(title, blog_content, cover_image)
 with open(PATH_TO_BLOG/"index.html") as index:
     soup = Soup(index.read(), features="html.parser")
-
 #print(str(soup))
 
 write_to_index(path_to_new_post)
-update_blog(commit_message="Added another new post")
-
-
+update_blog(commit_message='Update blog')
 
 
