@@ -2,23 +2,21 @@ import openai
 import os
 import shutil
 
+from dotenv import load_dotenv
 from git import Repo
-
+from bs4 import BeautifulSoup as Soup
 from pathlib import Path
-WORKING_PATH = "/Users/sealislandmedia/Desktop/TimothyJNeale.github.io"
 
+WORKING_PATH = "/Users/sealislandmedia/Desktop/TimothyJNeale.github.io"
 PATH_TO_BLOG_REPO = Path(os.path.join(WORKING_PATH, ".git"))
 PATH_TO_BLOG = PATH_TO_BLOG_REPO.parent
 
 PATH_TO_CONTENT = PATH_TO_BLOG/"content"
 PATH_TO_CONTENT.mkdir(exist_ok=True, parents=True)
 
-# load environment variables from .env file
-from dotenv import load_dotenv
-load_dotenv()
 
-
-def updae_blog(commit_message='Update blog'):
+ ############# Helper functions #############
+def update_blog(commit_message='Update blog'):
     repo = Repo(PATH_TO_BLOG_REPO)
 
     repo.git.add(all=True)
@@ -26,6 +24,8 @@ def updae_blog(commit_message='Update blog'):
 
     origin = repo.remote(name='origin')
     origin.push()
+
+
 
 def create_post(title, content, cover_image=None):
     cover_image = Path(cover_image)
@@ -59,10 +59,46 @@ def create_post(title, content, cover_image=None):
         raise FileExistsError("File already exists")
 
 
-path_to_new_post = create_post("Test Post", "This is a test post", cover_image="dev/Engineering.png")
+
+# Check for duplicate links
+def check_for_duplicate_links(path_to_new_content, links):
+    urls = [str(link.get("href")) for link in links]
+    content_path = str(Path(*path_to_new_content.parts[-2:]))
+    return content_path in urls
 
 
 
-# get api key from environment variable
-api_key = os.environ["OPENAI_API_KEY"]
-openai.api_key = api_key
+def write_to_index(path_to_new_content):
+    with open(PATH_TO_BLOG/"index.html") as index:
+        soup = Soup(index.read())
+    
+    links = soup.find_all("a")
+    last_link = links[-1]
+
+    if check_for_duplicate_links(path_to_new_content, links):
+        raise ValueError("Link already exists in index")
+    
+    link_to_new_blog = soup.new_tag("a", href=Path(*path_to_new_content.parts[-2:]))
+    link_to_new_blog.string = path_to_new_content.name.split(".")[0]
+    last_link.insert_after(link_to_new_blog)
+
+    with open(PATH_TO_BLOG/"index.html", "w") as f:
+        f.write(str(soup.prettify(formatter="html5")))
+
+############# Execution code starts here #############
+
+
+path_to_new_post = create_post("Test Post", "This is another test post", cover_image="dev/Engineering.png")
+
+
+with open(PATH_TO_BLOG/"index.html") as index:
+    soup = Soup(index.read(), features="html.parser")
+
+#print(str(soup))
+
+write_to_index(path_to_new_post)
+update_blog(commit_message="Added another new post")
+
+
+
+
