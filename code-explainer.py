@@ -20,12 +20,13 @@ def get_chat_completion(prompt, model="gpt-3.5-turbo", temperature=0):
     return response.choices[0].message["content"]
 
 # Instruction completion
-def get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=300):
+def get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=300, stop="\"\"\""):
     response = openai.Completion.create(
         model=model,
         prompt=prompt,
         temperature=temperature,
-        max_tokens=max_tokens)
+        max_tokens=max_tokens,
+        stop=stop)
 
     return response.choices[0].text
 
@@ -39,7 +40,7 @@ def merge_docstring(code, docstring):
     # Insert the docstring (ends in """") and newline
     # Insert the rest of the function
     code = code.split("\n")
-    code = code[:1] + ["\"\"\"\n" + docstring] + code[1:]
+    code = code[:1] + ["\"\"\"\n" + docstring.strip()] + ["\n\"\"\""] + code[1:] 
     return "\n".join(code)
 
 ############################### Authenticate #################################
@@ -57,6 +58,7 @@ def hello(name):
 source = inspect.getsource(hello)
 prompt = docstring_prompt(source)
 docstring = get_completion(prompt)
+#print(docstring)
 new_source = merge_docstring(source, docstring)
 print(new_source)
 
