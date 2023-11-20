@@ -8,6 +8,17 @@ import bs4
 # load environment variables from .env file
 load_dotenv()
 
+# Add looging
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Configure loing messsage
+logger.info("Starting up...")
+logger.info("Ready to go!")
+
+
 ################################### Data ####################################
 
 country_newspaper_dict = {"united states": "The New York Times",
