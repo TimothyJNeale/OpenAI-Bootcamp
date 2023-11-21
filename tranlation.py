@@ -1,25 +1,22 @@
+# Trabslate the headkines for newspapers in different countries
+####################################### IMPORTS ###############################################
 import openai
-from dotenv import load_dotenv
+import logging
 import os
+
+from dotenv import load_dotenv
 
 import requests
 import bs4
 
+##################################### CONSTANTS ###############################################
+
+DATA_DIRECTORY ='dev'
+
 # load environment variables from .env file
 load_dotenv()
 
-# Add looging
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-# Configure loing messsage
-logger.info("Starting up...")
-logger.info("Ready to go!")
-
-
-################################### Data ####################################
+############################################ Data #############################################
 
 country_newspaper_dict = {"united states": "The New York Times",
                             "united kingdom": "The Guardian",
@@ -33,6 +30,7 @@ country_newspaper_dict = {"united states": "The New York Times",
                             "south africa": "The Mail & Guardian",
                             "spain": "El País",
                             "france": "Le Monde"}
+
 newspaper_url_dict = {"The New York Times": "https://www.nytimes.com/",
                         "The Guardian": "https://www.theguardian.com/international",
                         "The Sydney Morning Herald": "https://www.smh.com.au/",
@@ -47,8 +45,7 @@ newspaper_url_dict = {"The New York Times": "https://www.nytimes.com/",
                         "Le Monde": "https://www.lemonde.fr/"}
 
 
-
-############################# Helper Functions ###############################
+################################## HELPER FUCTIONS #############################################
 
 # Use chat completion
 def get_chat_completion(prompt, model="gpt-3.5-turbo", temperature=0):
@@ -72,24 +69,39 @@ def get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_to
     return response.choices[0].text
 
 
-############################### Authenticate #################################
+####################################### LOGGING ################################################
+
+logging.basicConfig(level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
+logging.disable(logging.DEBUG) # Supress debugging output from modules imported
+#logging.disable(logging.CRITICAL) # Uncomment to disable all logging
+
+
+####################################### START #################################################
+logging.info('Start of program')
+
+# Get the current DATA directory
+home = os.getcwd()
+data_dir = os.path.join(home, DATA_DIRECTORY)
+logging.info(data_dir)
+
+os.chdir(data_dir)
 
 # Authenticate with OpenAI                             
 api_key = os.environ["OPENAI_API_KEY"]
 openai.api_key = api_key
 
 
-############################### Main Program #################################
+####################################### MAIN ##################################################
 
 country = input("What country are you interested in for news? ")
 newspaper = country_newspaper_dict[country.lower()]
 url = newspaper_url_dict[newspaper]
-print(url)
+logging.info(url)
 result = requests.get(url)
-print(result.status_code)
+logging.info(result.status_code)
 soup = bs4.BeautifulSoup(result.text, "html.parser")
 
-print(soup.title.text)
+logging.info(soup.title.text)
 headings = soup.find_all({"h1", "h2", "h3"})
 for heading in headings:
-    print(heading.text.strip())
+    logging.info(heading.text.strip())
