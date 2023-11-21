@@ -3,6 +3,7 @@
 .env
 /.venv
 /dev/*
+/data/*
 
 # Logs and databases #
 ######################
