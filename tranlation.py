@@ -102,6 +102,19 @@ logging.info(result.status_code)
 soup = bs4.BeautifulSoup(result.text, "html.parser")
 
 logging.info(soup.title.text)
-headings = soup.find_all({"h1", "h2", "h3"})
+headings = soup.find_all({"h1", "h2", "h3"})[:3]
 for heading in headings:
     logging.info(heading.text.strip())
+
+# Translate the headlines into english
+prompt = "Translate the following headlines into English:\n"
+for heading in headings:
+    prompt += heading.text.strip() + "\n"
+prompt += "\n\nTranslation:"
+
+translation = get_completion(prompt, 
+                             model="gpt-3.5-turbo-instruct", 
+                             temperature=0,
+                             max_tokens=300)
+
+logging.info(translation)
