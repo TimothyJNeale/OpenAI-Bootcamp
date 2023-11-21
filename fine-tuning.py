@@ -71,4 +71,17 @@ logging.info(input_file)
 qa_df = pd.read_csv(input_file)
 logging.info(qa_df.head())
 
+questions, answers = qa_df['Body'], qa_df['Answer']
+logging.info(questions.head())
+logging.info(answers.head())
+
+# Format the data for fine-tuning
+qa_openai_format = [ {"prompt": q, "completion": a} for q, a in zip(questions, answers)]
+logging.info(qa_openai_format[10])
+
+
+
+
+
+
 
