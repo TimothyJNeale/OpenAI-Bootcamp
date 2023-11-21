@@ -4,12 +4,14 @@ import openai
 import logging
 import os
 
-from dotenv import load_dotenv
+import pandas as pd
 
+from dotenv import load_dotenv
 
 ##################################### CONSTANTS ###############################################
 
-DATA_DIRECTORY ='dev'
+DATA_DIRECTORY ='data'
+DATA_FILE = 'python_qa.csv'
 
 # load environment variables from .env file
 load_dotenv()
@@ -62,6 +64,11 @@ os.chdir(data_dir)
 api_key = os.environ["OPENAI_API_KEY"]
 openai.api_key = api_key
 
-
 ####################################### MAIN ##################################################
+# Load the data
+input_file = os.path.join(data_dir, DATA_FILE)
+logging.info(input_file)
+qa_df = pd.read_csv(input_file)
+logging.info(qa_df.head())
+
 
