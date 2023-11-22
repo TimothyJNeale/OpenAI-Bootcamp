@@ -5,6 +5,8 @@ import logging
 import os
 
 import pandas as pd
+import tiktoken
+import json
 
 from dotenv import load_dotenv
 
@@ -12,6 +14,7 @@ from dotenv import load_dotenv
 
 DATA_DIRECTORY ='data'
 DATA_FILE = 'python_qa.csv'
+DATASET_SIZE = 500
 
 # load environment variables from .env file
 load_dotenv()
@@ -41,6 +44,13 @@ def get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_to
         stop=stop)
 
     return response.choices[0].text
+
+# Get the number of tokens in a prompt
+def get_num_tokens_from_string(string, encoding_name="gpt2"):
+    tokenizer = tiktoken.get_tokenizer(encoding_name)
+    tokens = tokenizer.tokenize(string)
+
+    return len(tokens)
 
 
 ####################################### LOGGING ################################################
@@ -79,9 +89,26 @@ logging.info(answers.head())
 qa_openai_format = [ {"prompt": q, "completion": a} for q, a in zip(questions, answers)]
 logging.info(qa_openai_format[10])
 
+# Test the prompt
+response = get_completion(
+    model = "babbage-002",
+    prompt = qa_openai_format[10]["prompt"])
+
+logging.info(response)
+
+# Test the prompt
+response = get_completion(prompt = qa_openai_format[10]["prompt"])
+
+logging.info(response)
+
+# Write the processes q qnd a fike to json file
+with open("example_training_data.json", "w") as f:
+    for entry in qa_openai_format[:DATASET_SIZE]:
+        f.write(json.dumps(entry) + "\n")
 
 
 
+# Estimate the costs of the fine-tuning using tiktoken library
 
 
-
+# Train the weeker model to get a better answer
