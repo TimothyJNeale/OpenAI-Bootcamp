@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 DATA_DIRECTORY ='data'
 DATA_FILE = 'python_qa.csv'
 DATASET_SIZE = 500
+TRAINING_COST_PER_TOKEN = 0.0004
+NUM_EPOCHS = 4
 
 # load environment variables from .env file
 load_dotenv()
@@ -47,8 +49,8 @@ def get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_to
 
 # Get the number of tokens in a prompt
 def get_num_tokens_from_string(string, encoding_name="gpt2"):
-    tokenizer = tiktoken.get_tokenizer(encoding_name)
-    tokens = tokenizer.tokenize(string)
+    tokenizer = tiktoken.get_encoding(encoding_name)
+    tokens = tokenizer.encode(string)
 
     return len(tokens)
 
@@ -89,26 +91,33 @@ logging.info(answers.head())
 qa_openai_format = [ {"prompt": q, "completion": a} for q, a in zip(questions, answers)]
 logging.info(qa_openai_format[10])
 
-# Test the prompt
-response = get_completion(
-    model = "babbage-002",
-    prompt = qa_openai_format[10]["prompt"])
+# # Test the prompt
+# response = get_completion(
+#     model = "babbage-002",
+#     prompt = qa_openai_format[10]["prompt"])
 
-logging.info(response)
+# logging.info(response)
 
-# Test the prompt
-response = get_completion(prompt = qa_openai_format[10]["prompt"])
+# # Test the prompt
+# response = get_completion(prompt = qa_openai_format[10]["prompt"])
 
-logging.info(response)
+# logging.info(response)
 
 # Write the processes q qnd a fike to json file
 with open("example_training_data.json", "w") as f:
     for entry in qa_openai_format[:DATASET_SIZE]:
         f.write(json.dumps(entry) + "\n")
 
-
-
 # Estimate the costs of the fine-tuning using tiktoken library
+token_counter = 0
+for entry in qa_openai_format[:DATASET_SIZE]:
+    for prompt, completion in entry.items():
+        token_counter += get_num_tokens_from_string(prompt)
+        token_counter += get_num_tokens_from_string(completion)
+
+logging.info(f"Total number of tokens: {token_counter}")
+costs = token_counter * TRAINING_COST_PER_TOKEN * NUM_EPOCHS / 1000
+logging.info(f"Estimated cost: ${costs}")
 
 
-# Train the weeker model to get a better answer
+################################### FINE TUNE VIA COMMAND LINE #########################################
