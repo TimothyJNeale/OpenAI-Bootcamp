@@ -1,5 +1,6 @@
 # Embed 
-####################################### IMPORTS ###############################################
+
+######################################### IMPORTS #############################################
 import openai
 import logging
 import os
@@ -9,19 +10,20 @@ import tiktoken
 
 from dotenv import load_dotenv
 
-##################################### CONSTANTS ###############################################
+######################################## CONSTANTS ############################################
+
 
 DATA_DIRECTORY ='data'
 DATA_FILE = 'python_qa.csv'
 DATASET_SIZE = 500
 
+########################################### DATA ##############################################
+
 # load environment variables from .env file
 load_dotenv()
 
-############################################ Data #############################################
 
-
-################################## HELPER FUCTIONS #############################################
+##################################### HELPER FUCTIONS #########################################
 
 # Use chat completion
 def get_chat_completion(prompt, model="gpt-3.5-turbo", temperature=0):
@@ -51,15 +53,14 @@ def get_num_tokens_from_string(string, encoding_name="gpt2"):
 
     return len(tokens)
 
-
-####################################### LOGGING ################################################
+######################################## LOGGING ##############################################
 
 logging.basicConfig(level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
 logging.disable(logging.DEBUG) # Supress debugging output from modules imported
 #logging.disable(logging.CRITICAL) # Uncomment to disable all logging
 
 
-####################################### START #################################################
+######################################### START ###############################################
 logging.info('Start of program')
 
 # Get the current DATA directory
