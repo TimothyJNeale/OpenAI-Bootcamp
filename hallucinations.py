@@ -66,10 +66,25 @@ openai.api_key = api_key
 ########################################## MAIN ###############################################
 logging.info('Main section entered')
 
-prompt = "What does the start-up Super Dooper Pooper Scooper do and who are the investors and how much seed funding have they provided?"
+prompt = '''What does the start-up Super Dooper Pooper Scooper do and who are the investors and how much seed funding have they provided?'''
 
 response = get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=512)
-logging.info(response)
+logging.info(f"Prompt 1 : {response}\n")
+
+
+prompt = '''Q: What does the start-up Super Dooper Pooper Scooper do and who are the investors and how much seed funding have they provided?
+            A: '''
+
+response = get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=512)
+logging.info(f"Prompt 2 : {response}\n")
+
+prompt = '''Only answer the question below if you are 100% certain of the facts. If you are not certain, please leave the answer blank.
+
+Q: What does the start-up Super Dooper Pooper Scooper do and who are the investors and how much seed funding have they provided?
+A: '''
+
+response = get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=512)
+logging.info(f"Prompt 3 : {response}\n")
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
