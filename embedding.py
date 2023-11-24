@@ -1,4 +1,4 @@
-# Embed 
+# Search on embedded documants 
 
 ######################################### IMPORTS #############################################
 import openai
