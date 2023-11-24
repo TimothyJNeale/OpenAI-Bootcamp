@@ -6,6 +6,8 @@ import logging
 import os
 
 import pandas as pd
+import numpy as np
+
 import ast
 import tiktoken
 
@@ -54,11 +56,11 @@ def get_num_tokens_from_string(string, encoding_name="gpt2"):
     return len(tokens)
 
 def summary(compnay, crunchbase_url, city, country, industry, investor_list):
-    investrs = "The investors in the compaany are"
+    investors = "The investors in the compaany are "
     for investor in ast.literal_eval(investor_list):
-        investrs += investor + ", "
-
-    text = f"{compnay} is a company based in {city}, {country}. It is in the {industry} industry. {investrs}."
+        investors += investor + ", "
+    investors = investors[:-2] + "."
+    text = f"{compnay} is a company based in {city}, {country}. It is in the {industry} industry. {investors}"
     return text
 
 def get_embedding(text):
@@ -67,6 +69,15 @@ def get_embedding(text):
         input=text
     )
     return response['data'][0]['embedding']
+
+def vector_simliarity(v1, v2):
+    # logging.info(v1)
+    # logging.info(type(v1))
+    # logging.info(v2)
+    # logging.info(type(v2))
+
+    return np.dot(np.array(v1), np.array(v2))
+
 
 
 ######################################## LOGGING ##############################################
@@ -125,6 +136,30 @@ logging.info(get_embedding(df['summary'][0]))
 df['embedding'] = df['summary'].apply(get_embedding)
 logging.info(df.columns)
 df.to_csv('unicorns_with_embeddings.csv', index=False)
+
+# Load the embeddings from the csv
+df_embeddings = pd.read_csv('unicorns_with_embeddings.csv')
+logging.info(df_embeddings.columns)
+
+prompt = "What does the company Greater Bay Technology do and who invested in it?"
+promp_embedding = get_embedding(prompt)
+logging.info(type(promp_embedding))
+logging.info(type(df_embeddings['embedding']))
+
+# Calculate the distance between the prompt and the first summary
+# logging.info(df_embeddings['embedding'][0]) # This is a string
+# logging.info(type(df_embeddings['embedding'][0]))
+# logging.info(ast.literal_eval(df_embeddings['embedding'][0])) # This is a list
+# logging.info(type(ast.literal_eval(df_embeddings['embedding'][0])))
+# logging.info(np.array(ast.literal_eval(df_embeddings['embedding'][0]))) # This is a numpy array
+# prompt_simliarity = vector_simliarity(ast.literal_eval(df_embeddings['embedding'][0]), promp_embedding)
+
+
+df_embeddings['l_embeddings'] = df_embeddings['embedding'].apply(ast.literal_eval)
+df_embeddings['prompt_similarity'] = df_embeddings['l_embeddings'].apply(lambda x: vector_simliarity(x, promp_embedding))
+
+company = df_embeddings.nlargest(1, 'prompt_similarity')['summary'].values[0]
+logging.info(company)
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
