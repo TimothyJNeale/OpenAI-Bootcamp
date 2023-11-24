@@ -61,6 +61,14 @@ def summary(compnay, crunchbase_url, city, country, industry, investor_list):
     text = f"{compnay} is a company based in {city}, {country}. It is in the {industry} industry. {investrs}."
     return text
 
+def get_embedding(text):
+    response = openai.Embedding.create(
+        model="text-embedding-ada-002",
+        input=text
+    )
+    return response['data'][0]['embedding']
+
+
 ######################################## LOGGING ##############################################
 
 logging.basicConfig(level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
@@ -102,11 +110,21 @@ logging.info(get_num_tokens_from_string(df['summary'][0]))
 # Calculate the number of tokens in the summary column
 df['token_count'] = df.apply(lambda df: get_num_tokens_from_string(df['summary'],"cl100k_base"), axis=1)
 logging.info(df.columns)
+
 total_tokens = df['token_count'].sum()
 logging.info(total_tokens)
+
 embeddings_cost = total_tokens * TRAINING_COST_PER_1KTOKEN / 1000
 logging.info(embeddings_cost)
 
+# Get the embedding for the first summary
+logging.info(df['summary'][0])
+logging.info(get_embedding(df['summary'][0]))
+
+# Get the embeddings for all summaries
+df['embedding'] = df['summary'].apply(get_embedding)
+logging.info(df.columns)
+df.to_csv('unicorns_with_embeddings.csv', index=False)
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
