@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 DATA_DIRECTORY ='data'
 DATA_FILE = 'unicorns.csv'
-DATASET_SIZE = 500
+TRAINING_COST_PER_1KTOKEN = 0.0004
 
 ########################################### DATA ##############################################
 
@@ -94,6 +94,18 @@ logging.info(df.columns)
 df['summary'] = df.apply(lambda df: summary(df['Company'], df['Crunchbase Url'], df['City'], df['Country'], df['Industry'], df['Investors']), axis=1)
 logging.info(df.columns)
 
+# Find the number of tokens in first summary
+logging.info(df['summary'][0])
+logging.info(len(df['summary'][0]))
+logging.info(get_num_tokens_from_string(df['summary'][0]))
+
+# Calculate the number of tokens in the summary column
+df['token_count'] = df.apply(lambda df: get_num_tokens_from_string(df['summary'],"cl100k_base"), axis=1)
+logging.info(df.columns)
+total_tokens = df['token_count'].sum()
+logging.info(total_tokens)
+embeddings_cost = total_tokens * TRAINING_COST_PER_1KTOKEN / 1000
+logging.info(embeddings_cost)
 
 
 ######################################### FINISH ##############################################
