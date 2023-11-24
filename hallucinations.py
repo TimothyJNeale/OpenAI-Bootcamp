@@ -66,7 +66,10 @@ openai.api_key = api_key
 ########################################## MAIN ###############################################
 logging.info('Main section entered')
 
+prompt = "What does the start-up Super Dooper Pooper Scooper do and who are the investors and how much seed funding have they provided?"
 
+response = get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=512)
+logging.info(response)
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
