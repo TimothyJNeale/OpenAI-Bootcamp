@@ -1,4 +1,4 @@
-# Use ChatGTP API to create a history tutoe
+# Use ChatGTP API to create a history tutor
 ######################################### IMPORTS #############################################
 import openai
 import logging
@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 ######################################## CONSTANTS ############################################
 
 DATA_DIRECTORY ='data'
+GPT_SYSTEM_ROLE = "You are a USA history teacher for middle school kids."
 
 ########################################### DATA ##############################################
 
@@ -18,16 +19,6 @@ DATA_DIRECTORY ='data'
 load_dotenv()
 
 ##################################### HELPER FUCTIONS #########################################
-
-# Use chat completion
-def get_chat_completion(prompt, model="gpt-3.5-turbo", temperature=0):
-    messages = [{"role": "user", "content": prompt}]
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        temperature=temperature
-    )
-    return response.choices[0].message["content"]
 
 # Standard completion
 def get_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0, max_tokens=300, stop="\"\"\""):
@@ -48,10 +39,40 @@ def get_num_tokens_from_string(string, encoding_name="gpt2"):
     return len(tokens)
 
 ######################################## LOGGING ##############################################
-
 logging.basicConfig(level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
 logging.disable(logging.DEBUG) # Supress debugging output from modules imported
 #logging.disable(logging.CRITICAL) # Uncomment to disable all logging
+
+######################################## CLASSES ##############################################
+class CreateBot:
+
+    def __init__(self, model="gpt-3.5-turbo", system_prompt=GPT_SYSTEM_ROLE, temperature=0, max_tokens=150):
+        self.system = system_prompt
+        self.model = model
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.messages = [{"role": "system", "content": system_prompt}]
+
+    def chat(self):
+        print('To terminate the chat, type "quit"')
+        question = ''
+
+        while question.lower() != 'quit':
+            question = input('You: ')
+            if question.lower() == 'quit':
+                break
+            self.messages.append({"role": "user", "content": question})
+            response = openai.ChatCompletion.create(
+                model=self.model,
+                messages=self.messages,
+                temperature=0,
+                max_tokens=150
+                )
+            
+            answer = response.choices[0].message["content"]
+            self.messages.append({"role": "assistant", "content": answer})
+            print('Bot: ' + answer)
+
 
 ######################################### START ###############################################
 logging.info('Start of program')
@@ -70,6 +91,9 @@ openai.api_key = api_key
 ########################################## MAIN ###############################################
 logging.info('Main section entered')
 
+# # Use ChatGTP API to create a history tutor
+history_tutor = CreateBot()
+history_tutor.chat()
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
