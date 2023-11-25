@@ -78,7 +78,13 @@ def vector_simliarity(v1, v2):
 
     return np.dot(np.array(v1), np.array(v2))
 
-
+def prompt_with_context(context):
+    prompt = f'''
+    Only answer the question below if you are 100% certain of the facts. If you are not certain, please leave the answer blank.
+    Context: {context}
+    Q: What does the company do and who are the investors and how much seed funding have they provided?
+    A: '''
+    return prompt
 
 ######################################## LOGGING ##############################################
 
@@ -111,7 +117,7 @@ logging.info(df.columns)
 
 # Create a summary column
 df['summary'] = df.apply(lambda df: summary(df['Company'], df['Crunchbase Url'], df['City'], df['Country'], df['Industry'], df['Investors']), axis=1)
-logging.info(df.columns)
+# logging.info(df.columns)
 
 # Find the number of tokens in first summary
 logging.info(df['summary'][0])
@@ -120,7 +126,7 @@ logging.info(get_num_tokens_from_string(df['summary'][0]))
 
 # Calculate the number of tokens in the summary column
 df['token_count'] = df.apply(lambda df: get_num_tokens_from_string(df['summary'],"cl100k_base"), axis=1)
-logging.info(df.columns)
+# logging.info(df.columns)
 
 total_tokens = df['token_count'].sum()
 logging.info(total_tokens)
@@ -128,18 +134,18 @@ logging.info(total_tokens)
 embeddings_cost = total_tokens * TRAINING_COST_PER_1KTOKEN / 1000
 logging.info(embeddings_cost)
 
-# Get the embedding for the first summary
-logging.info(df['summary'][0])
-logging.info(get_embedding(df['summary'][0]))
+# # Get the embedding for the first summary
+# logging.info(df['summary'][0])
+# logging.info(get_embedding(df['summary'][0]))
 
-# Get the embeddings for all summaries
-df['embedding'] = df['summary'].apply(get_embedding)
-logging.info(df.columns)
-df.to_csv('unicorns_with_embeddings.csv', index=False)
+# # Get the embeddings for all summaries
+# df['embedding'] = df['summary'].apply(get_embedding)
+# logging.info(df.columns)
+# df.to_csv('unicorns_with_embeddings.csv', index=False)
 
 # Load the embeddings from the csv
 df_embeddings = pd.read_csv('unicorns_with_embeddings.csv')
-logging.info(df_embeddings.columns)
+# logging.info(df_embeddings.columns)
 
 prompt = "What does the company Greater Bay Technology do and who invested in it?"
 promp_embedding = get_embedding(prompt)
@@ -160,6 +166,12 @@ df_embeddings['prompt_similarity'] = df_embeddings['l_embeddings'].apply(lambda 
 
 company = df_embeddings.nlargest(1, 'prompt_similarity')['summary'].values[0]
 logging.info(company)
+
+prompt = prompt_with_context(company)
+logging.info(prompt)
+
+response = get_completion(prompt, temperature=0, max_tokens=512)
+logging.info(response)
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
