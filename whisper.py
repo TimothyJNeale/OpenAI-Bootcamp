@@ -54,6 +54,25 @@ openai.api_key = api_key
 ########################################## MAIN ###############################################
 logging.info('Main section entered')
 
+# Read the audio file
+audio_file =  open("Warren_Buffett_On_Exposing_Business_Frauds_And_Deception.mp3", "rb")
+transcript = openai.Audio.transcribe("whisper-1", audio_file)
+audio_file.close()
+
+write_file = open("transcript.txt", "w")
+write_file.write(transcript['text'])
+write_file.close()
+
+# get a summary of the transcript
+prompt = f'''
+Produce a summary of the following: 
+Transcript: {transcript['text']}
+Summary: '''
+
+summary = get_completion(prompt, max_tokens=500)
+summary_file = open("summary.txt", "w")
+summary_file.write(summary)
+summary_file.close()
 
 ######################################### FINISH ##############################################
 logging.info('End of program')
